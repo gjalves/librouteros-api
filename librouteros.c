@@ -498,7 +498,14 @@ struct ros_result *ros_read_packet(struct ros_connection *conn) {
 		}
 
 		if (len > 0) {
-			_read(conn->socket, buffer, len);
+            // Ensure that the entire word is retrieved from the network
+            // even when it is split between two packets
+            ssize_t size;
+            int total = 0;
+            do {
+			    size = _read(conn->socket, buffer + total, len - total);
+                total += size;
+            } while(total < len);
 			buffer[len] = '\0';
 			ros_sentence_add(ret->sentence, buffer);
 		}
@@ -868,10 +875,10 @@ int ros_login_v2(struct ros_connection *conn, char *username, char *password) {
 	strcat(userWord, username);
 	userWord[6+strlen(username)] = 0;
 
-	passWord = malloc(sizeof(char) * (6 + strlen(password) + 1));
+	passWord = malloc(sizeof(char) * (10 + strlen(password) + 1));
 	strcpy(passWord, "=password=");
 	strcat(passWord, password);
-	userWord[6+strlen(password)] = 0;
+	passWord[10+strlen(password)] = 0;
 
 	res = ros_send_command_wait(conn, "/login", userWord, passWord, NULL);
 
