@@ -1,4 +1,4 @@
-all:	librouteros.o librouteros.so
+all:	librouteros.o librouteros.so librouteros.a
 
 examples: librouteros.o librouteros.h
 	make -C examples all
@@ -12,10 +12,14 @@ md5.o: md5.c
 librouteros.so: librouteros.o md5.o
 	gcc -Wall -Wall -g -shared -o librouteros.so librouteros.o md5.o
 
-install: librouteros.so
+librouteros.a: librouteros.o md5.o
+	ar -rc librouteros.a *.o
+
+install: librouteros.so librouteros.a
 	cp librouteros.so /usr/lib/
+	cp librouteros.a /usr/lib/
 	cp librouteros.h /usr/include/
 
 clean:
-	rm -f *.o *.so
+	rm -f *.a *.o *.so
 	make -C examples clean
