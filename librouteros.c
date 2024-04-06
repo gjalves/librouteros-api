@@ -796,7 +796,8 @@ struct ros_result *ros_send_command_wait(struct ros_connection *conn, char *comm
 }
 
 /* TODO: write with events */
-int ros_login(struct ros_connection *conn, char *username, char *password) {
+// Login function used pre v6.43
+int ros_login_v1(struct ros_connection *conn, char *username, char *password) {
 	int result;
 	unsigned char buffer[1024];
 	char *userWord;
@@ -855,4 +856,39 @@ int ros_login(struct ros_connection *conn, char *username, char *password) {
 	return result;
 }
 
+// Login function used post v6.43
+int ros_login_v2(struct ros_connection *conn, char *username, char *password) {
+	int result;
+	char *userWord;
+	char *passWord;
+	struct ros_result *res;
 
+	userWord = malloc(sizeof(char) * (6 + strlen(username) + 1));
+	strcpy(userWord, "=name=");
+	strcat(userWord, username);
+	userWord[6+strlen(username)] = 0;
+
+	passWord = malloc(sizeof(char) * (6 + strlen(password) + 1));
+	strcpy(passWord, "=password=");
+	strcat(passWord, password);
+	userWord[6+strlen(password)] = 0;
+
+	res = ros_send_command_wait(conn, "/login", userWord, passWord, NULL);
+
+	free(userWord);
+	free(passWord);
+
+	// '!done' flag == successful login
+	if (res != NULL) {
+		result = res->done;
+		ros_result_free(res);
+	} else {
+		result = 0;
+	}
+
+	return result;
+}
+
+int ros_login(struct ros_connection *conn, char *username, char *password) {
+    return ros_login_v2(conn, username, password);
+}

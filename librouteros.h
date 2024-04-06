@@ -73,6 +73,8 @@ int ros_send_sentence_cb(struct ros_connection *conn, void (*callback)(struct ro
 /* blocking functions */
 struct ros_result *ros_send_command_wait(struct ros_connection *conn, char *command, ...);
 struct ros_result *ros_read_packet(struct ros_connection *conn);
+int ros_login_v1(struct ros_connection *conn, char *username, char *password);
+int ros_login_v2(struct ros_connection *conn, char *username, char *password);
 int ros_login(struct ros_connection *conn, char *username, char *password);
 int ros_cancel(struct ros_connection *conn, int id);
 
